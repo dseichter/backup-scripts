@@ -9,14 +9,14 @@ for vmid in $(/usr/bin/onevm list | awk 'BEGIN{n=2}NR<=n{next}1' | cut -b 1-7); 
 
     # set the need variables
     machine=$vmid
-    backup=$machine_backup
-    destination=/mnt/$backup # <-- set the destination
+    backup=${machine}_backup
+    destination=/backup/${backup} # <-- set the destination
 
     if [ $(/usr/bin/onevm show ${machine} | grep LCM_STATE | cut -d ":" -f 2) == "RUNNING" ]; then
-        
+
         # Invoke backup tool by opennebula
-        echo "Start saving image using disk-saveas"
-        /usr/bin/onevm disk-saveas ${machine} 0 ${backup} >> /dev/null
+        echo "Start saving image $machine using disk-saveas"
+        /usr/bin/onevm disk-saveas ${machine} 0 ${backup}
 
         # get the status of the newly generated image
         status=$(/usr/bin/oneimage show ${backup} | grep STATE | cut -d ":" -f 2)
@@ -30,15 +30,16 @@ for vmid in $(/usr/bin/onevm list | awk 'BEGIN{n=2}NR<=n{next}1' | cut -b 1-7); 
 
         # Output the path for snapshot
         imagefile=$(/usr/bin/oneimage show ${backup} | grep SOURCE | cut -d ":" -f 2)
-        
+
         echo "The image $imagefile will now be copied"
-            
-        # we do a simple copy of the imagefile file to the backup location    
-        cp $imagefile $destination
+
+        # we do a simple copy of the imagefile file to the backup location
+        cp ${imagefile} ${destination}
 
         # at least, we delete the image from open nebula again
-        /usr/bin/oneimage delete $backup
-    
+        /usr/bin/oneimage delete ${backup}
+
     fi
 
 done
+
